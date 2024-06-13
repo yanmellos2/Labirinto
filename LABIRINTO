@@ -1,0 +1,86 @@
+def dijkstra(grafo, inicio, objetivo):
+    # Inicializa o dicionário de nós não visitados com distância infinita
+    nao_visitados = {n: float('inf') for n in grafo.keys()}
+    nao_visitados[inicio] = 0  # Define a distância do nó inicial como 0
+    visitados = {}  # Dicionário para armazenar nós visitados e suas distâncias
+    caminho_reverso = {}  # Dicionário para armazenar o caminho reverso
+    # Enquanto houver nós não visitados
+    while nao_visitados:
+        # Encontra o nó não visitado com a menor distância
+        no_min = min(nao_visitados, key=nao_visitados.get)
+        visitados[no_min] = nao_visitados[no_min]  # Marca o nó atual como visitado
+        # Verifica se o nó atual é o objetivo
+        if no_min == objetivo:
+            break  # Se sim, encerra o loop
+        # Itera sobre os vizinhos do nó atual
+        for vizinho, custo in grafo.get(no_min, {}).items():
+            if vizinho in visitados:
+                continue  # Pula os vizinhos que já foram visita
+from pyamaze import maze, agent, COLOR, textLabel
+import random
+def dijkstra(m, *obstaculos, inicio=None):
+    if inicio is None:
+        inicio = (m.rows, m.cols)  # Define o ponto de início como o canto inferior direito
+    obstaculos_info = [(o.position, o.cost) for o in obstaculos]  # Lista de obstáculos com suas posições e custos
+    nao_visitados = {n: float('inf') for n in
+                     m.grid}  # Inicializa todas as células como não visitadas com distância infinita
+    nao_visitados[inicio] = 0  # A distância do início é 0
+    visitados = {}  # Dicionário para armazenar as células visitadas e suas distâncias
+    caminho_reverso = {}  # Dicionário para armazenar o caminho reverso
+    while nao_visitados:
+        # Encontra a célula não visitada com a menor distância
+        celula_atual = min(nao_visitados, key=nao_visitados.get)
+        visitados[celula_atual] = nao_visitados[celula_atual]
+        if celula_atual == m._goal:  # Verifica se alcançou o objetivo
+            break
+        for direcao in 'EWNS':
+            if m.maze_map[celula_atual][direcao]:
+                if direcao == 'E':
+                    celula_filho = (celula_atual[0], celula_atual[1] + 1)
+                elif direcao == 'W':
+                    celula_filho = (celula_atual[0], celula_atual[1] - 1)
+                elif direcao == 'S':
+                    celula_filho = (celula_atual[0] + 1, celula_atual[1])
+                elif direcao == 'N':
+                    celula_filho = (celula_atual[0] - 1, celula_atual[1])
+                if celula_filho in visitados:
+                    continue
+                distancia_temp = nao_visitados[celula_atual] + 1  # Distância para a célula vizinha
+                for obstaculo in obstaculos_info:
+                    if obstaculo[0] == celula_atual:
+                        distancia_temp += obstaculo[1]  # Adiciona o custo do obstáculo
+                if distancia_temp < nao_visitados.get(celula_filho, float('inf')):
+                    nao_visitados[celula_filho] = distancia_temp
+                    caminho_reverso[celula_filho] = celula_atual
+        nao_visitados.pop(celula_atual)  # Remove a célula atual dos não visitados
+    caminho_frente = {}
+    celula = m._goal
+    while celula != inicio:
+        caminho_frente[caminho_reverso[celula]] = celula
+        celula = caminho_reverso[celula]
+    return caminho_frente, visitados[m._goal]
+if __name__ == '__main__':
+    myMaze = maze(10, 15)
+    # Define o ponto inicial e o ponto final aleatoriamente
+    inicio = (random.randint(1, myMaze.rows), random.randint(1, myMaze.cols))
+    fim = (random.randint(1, myMaze.rows), random.randint(1, myMaze.cols))
+    myMaze.CreateMaze(fim[0], fim[1], loopPercent=100)
+    # Adiciona obstáculos aleatórios
+    num_obstaculos = 20
+    obstaculos = []
+    for _ in range(num_obstaculos):
+        while True:
+            x = random.randint(1, myMaze.rows)
+            y = random.randint(1, myMaze.cols)
+            if (x, y) != inicio and (x, y) != fim:
+                obstaculo = agent(myMaze, x, y, color=COLOR.red)
+                obstaculo.cost = 100  # Custo arbitrário para o obstáculo
+                obstaculos.append(obstaculo)
+                break
+    # Calcula o caminho usando Dijkstra
+    caminho, custo_total = dijkstra(myMaze, *obstaculos, inicio=inicio)
+    textLabel(myMaze, 'Custo Total', custo_total)
+    # Cria um agente para traçar o caminho encontrado
+    agente = agent(myMaze, inicio[0], inicio[1], color=COLOR.cyan, filled=True, footprints=True)
+    myMaze.tracePath({agente: caminho})
+    myMaze.run()
