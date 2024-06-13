@@ -84,3 +84,4 @@ if __name__ == '__main__':
     agente = agent(myMaze, inicio[0], inicio[1], color=COLOR.cyan, filled=True, footprints=True)
     myMaze.tracePath({agente: caminho})
     myMaze.run()
+
